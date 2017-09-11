@@ -13,6 +13,8 @@
 // ahg@eng.cam.ac.uk and gc121@eng.cam.ac.uk.
 
 #include "lander.h"
+#include <cmath>
+#include <iostream>
 
 void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
@@ -25,6 +27,51 @@ void numerical_dynamics (void)
   // lander's pose. The time step is delta_t (global variable).
 {
   // INSERT YOUR CODE HERE
+  static vector3d old_position;
+  vector3d F_gravity, F_thrust, F_drag_lander, F_drag_chute, F_drag, F_total, acceleration, new_position, empty3d;
+  double CURRENT_LANDER_MASS, AREA_LANDER, AREA_CHUTE;
+  
+  CURRENT_LANDER_MASS = UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY;
+  AREA_LANDER = 3.141592654 * (pow(LANDER_SIZE, 2));
+  AREA_CHUTE = 5 * (pow(2.0*LANDER_SIZE, 2));
+  
+  F_gravity = -position.norm() * ((GRAVITY * MARS_MASS * CURRENT_LANDER_MASS) / (position.abs2()));
+  
+  F_thrust = thrust_wrt_world();
+  
+  F_drag_lander = -velocity.norm() * (0.5 * atmospheric_density(position) * DRAG_COEF_LANDER * AREA_LANDER * velocity.abs2());
+  if (parachute_status == DEPLOYED) {
+    F_drag_chute = -velocity.norm() * (0.5 * atmospheric_density(position) * DRAG_COEF_CHUTE * AREA_CHUTE * velocity.abs2());
+    F_drag = F_drag_lander + F_drag_chute;
+  } else {
+    F_drag = F_drag_lander;
+  }
+
+  F_total = F_gravity + F_thrust + F_drag;
+
+  acceleration = F_total / CURRENT_LANDER_MASS;
+
+  // Euler integration
+  /*
+  position = position + delta_t * velocity;
+  velocity = velocity + delta_t * acceleration;  
+  */
+
+  // Verlet integration
+  // To cater to the extra position value needed, set up 2 other vector3d. If old_position == empty3d, then we know that old_position has just been initialised,
+  // and so, this is the first time step. Alternatively, just check if simulation_time == 0.0.
+  // NOTE: First method does not work. Not sure why.
+  
+  if (simulation_time == 0.0) {
+    new_position = position + delta_t * velocity;
+    velocity = velocity + delta_t * acceleration;
+  } else {
+    new_position = 2 * position - old_position + acceleration * delta_t * delta_t;
+    velocity = (new_position - old_position) / (2 * delta_t); 
+  }
+
+  old_position = position;
+  position = new_position;
 
   // Here we can apply an autopilot to adjust the thrust, parachute and attitude
   if (autopilot_enabled) autopilot();

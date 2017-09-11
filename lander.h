@@ -189,7 +189,7 @@ extern bool stabilized_attitude, autopilot_enabled;
 extern double delta_t, simulation_time, throttle, fuel;
 extern unsigned short scenario;
 extern string scenario_description[];
-extern vector3d position, orientation, velocity;
+extern vector3d position, orientation, velocity, last_position;
 extern parachute_status_t parachute_status;
 extern int stabilized_attitude_angle;
 
