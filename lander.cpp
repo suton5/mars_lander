@@ -20,6 +20,20 @@ void autopilot (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
   // INSERT YOUR CODE HERE
+  stabilized_attitude = true; // Leave stabilisation permanently on
+
+  // Using the control theory given in the handout, we derive a final equation that governs the throttle.
+  // It is dependent on three constants --> delta_PID, K_h and K_p.
+  // Note: Using the definition of the vector3d position, we can define the unit radial vector as position.norm()
+
+  // Define constants
+  double delta_PID, K_h, K_p;
+
+  delta_PID = 0.444;
+  K_h = 0.010;
+  K_p = 0.010;
+
+  throttle = delta_PID - K_p * (0.5 + K_h * (position.abs()-MARS_RADIUS) + velocity * position.norm());
 }
 
 void numerical_dynamics (void)
