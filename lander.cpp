@@ -27,13 +27,20 @@ void autopilot (void)
   // Note: Using the definition of the vector3d position, we can define the unit radial vector as position.norm()
 
   // Define constants
-  double delta_PID, K_h, K_p;
+  double delta_PID, K_h, K_p, P_out;
 
   delta_PID = 0.444;
   K_h = 0.010;
   K_p = 0.010;
-
-  throttle = delta_PID - K_p * (0.5 + K_h * (position.abs()-MARS_RADIUS) + velocity * position.norm());
+  P_out = - K_p * (0.5 + K_h * (position.abs()-MARS_RADIUS) + velocity * position.norm());
+  
+  if (P_out <= -delta_PID) {
+    throttle = 0;
+  } else if (P_out >= (1-delta_PID)) {
+    throttle =1;
+  } else {
+    throttle = delta_PID + P_out;
+  }
 }
 
 void numerical_dynamics (void)
