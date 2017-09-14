@@ -29,9 +29,9 @@ void autopilot (void)
   // Define constants
   double delta_PID, K_h, K_p, P_out;
 
-  delta_PID = 0.444;
-  K_h = 0.010;
-  K_p = 0.010;
+  delta_PID = 0.25;
+  K_h = 0.011;
+  K_p = 0.2;
   P_out = - K_p * (0.5 + K_h * (position.abs()-MARS_RADIUS) + velocity * position.norm());
   
   if (P_out <= -delta_PID) {
