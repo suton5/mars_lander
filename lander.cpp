@@ -23,14 +23,17 @@ void autopilot (void)
   stabilized_attitude = true; // Leave stabilisation permanently on
 
   // Using the control theory given in the handout, we derive a final equation that governs the throttle.
-  // It is dependent on three constants --> delta_PID, K_h and K_p.
+  // It is dependent on three values --> delta_PID, K_h and K_p.
   // Note: Using the definition of the vector3d position, we can define the unit radial vector as position.norm()
 
   // Define constants
-  double delta_PID, K_h, K_p, P_out;
+  double delta_PID, K_h, K_p, P_out, CURRENT_LANDER_MASS, CURRENT_LANDER_WEIGHT;
+  
+  CURRENT_LANDER_MASS = UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY;
+  CURRENT_LANDER_WEIGHT = ((GRAVITY * MARS_MASS * CURRENT_LANDER_MASS) / (position.abs2()));
 
-  delta_PID = 0.25;
-  K_h = 0.011;
+  delta_PID = CURRENT_LANDER_WEIGHT / MAX_THRUST; // Needs to balance the weight of the lander when P_out == 0.
+  K_h = 0.017;
   K_p = 0.2;
   P_out = - K_p * (0.5 + K_h * (position.abs()-MARS_RADIUS) + velocity * position.norm());
   
@@ -40,6 +43,10 @@ void autopilot (void)
     throttle =1;
   } else {
     throttle = delta_PID + P_out;
+  }
+
+  if ((position.abs()-MARS_RADIUS) <= 5000 && velocity.abs() <= 200.0) {
+    parachute_status = DEPLOYED;
   }
 }
 
