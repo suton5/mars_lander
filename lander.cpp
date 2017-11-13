@@ -16,11 +16,9 @@
 #include <cmath>
 #include <iostream>
 
-void autopilot (void)
+void autopilot1 (void)
   // Autopilot to adjust the engine throttle, parachute and attitude control
 {
-  // INSERT YOUR CODE HERE
-  stabilized_attitude = true; // Leave stabilisation permanently on
 
   // Using the control theory given in the handout, we derive a final equation that governs the throttle.
   // It is dependent on three values --> delta_PID, K_h and K_p.
@@ -47,6 +45,29 @@ void autopilot (void)
 
   if ((position.abs()-MARS_RADIUS) <= 5000 && velocity.abs() <= 200.0) {
     parachute_status = DEPLOYED;
+  }
+}
+
+void autopilot (void)
+{
+  double delta_PID, K_d, K_p, P_out, CURRENT_LANDER_MASS, CURRENT_LANDER_WEIGHT, target_altitude, speed;
+
+  CURRENT_LANDER_MASS = UNLOADED_LANDER_MASS + fuel * FUEL_CAPACITY * FUEL_DENSITY;
+  CURRENT_LANDER_WEIGHT = ((GRAVITY * MARS_MASS * CURRENT_LANDER_MASS) / (position.abs2()));
+
+  delta_PID = CURRENT_LANDER_WEIGHT / MAX_THRUST; // Needs to balance the weight of the lander when P_out == 0.
+  K_d = 0.0;
+  K_p = 1;
+  target_altitude = 500.0;
+  speed = -velocity*position.norm(); // To find the derivative of altitude, resolve velocity in the direction of position
+  P_out = K_p * (target_altitude - (position.abs()-MARS_RADIUS)) + K_d * speed;
+  
+  if (P_out <= -delta_PID) {
+    throttle = 0;
+  } else if (P_out >= (1-delta_PID)) {
+    throttle =1;
+  } else {
+    throttle = delta_PID + P_out;
   }
 }
 
@@ -125,9 +146,9 @@ void initialize_simulation (void)
   scenario_description[3] = "polar launch at escape velocity (but drag prevents escape)";
   scenario_description[4] = "elliptical orbit that clips the atmosphere and decays";
   scenario_description[5] = "descent from 200km";
-  scenario_description[6] = "";
-  scenario_description[7] = "";
-  scenario_description[8] = "";
+  scenario_description[6] = "descent from 500m";
+  scenario_description[7] = "descent from 510m";
+  scenario_description[8] = "descent from 700m";
   scenario_description[9] = "";
 
   switch (scenario) {
@@ -199,12 +220,36 @@ void initialize_simulation (void)
     break;
 
   case 6:
+    // a descent from rest at 500m altitude
+    position = vector3d(0.0, -(MARS_RADIUS + 500.0), 0.0);
+    velocity = vector3d(0.0, 0.0, 0.0);
+    orientation = vector3d(0.0, 0.0, 90.0);
+    delta_t = 0.01;
+    parachute_status = NOT_DEPLOYED;
+    stabilized_attitude = true;
+    autopilot_enabled = true;
     break;
 
   case 7:
+    // a descent from rest at 510m altitude
+    position = vector3d(0.0, -(MARS_RADIUS + 510.0), 0.0);
+    velocity = vector3d(0.0, 0.0, 0.0);
+    orientation = vector3d(0.0, 0.0, 90.0);
+    delta_t = 0.01;
+    parachute_status = NOT_DEPLOYED;
+    stabilized_attitude = true;
+    autopilot_enabled = true;
     break;
 
   case 8:
+    // a descent from rest at 700m altitude
+    position = vector3d(0.0, -(MARS_RADIUS + 700.0), 0.0);
+    velocity = vector3d(0.0, 0.0, 0.0);
+    orientation = vector3d(0.0, 0.0, 90.0);
+    delta_t = 0.01;
+    parachute_status = NOT_DEPLOYED;
+    stabilized_attitude = true;
+    autopilot_enabled = true;
     break;
 
   case 9:
